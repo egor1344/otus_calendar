@@ -1,9 +1,10 @@
 package calendar
 
 import (
-	"github.com/egor1344/otus_home/calendar/models/event"
-	"github.com/pkg/errors"
 	"sync"
+
+	"github.com/egor1344/otus_calendar/calendar/models/event"
+	"github.com/pkg/errors"
 )
 
 // Структура события

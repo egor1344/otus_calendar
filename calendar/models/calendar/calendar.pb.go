@@ -5,9 +5,9 @@ package calendar
 
 import (
 	fmt "fmt"
+	event "github.com/egor1344/otus_calendar/calendar/models/event"
 	proto "github.com/golang/protobuf/proto"
 	math "math"
-	event "models/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

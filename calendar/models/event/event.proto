@@ -4,6 +4,8 @@ package event;
 
 import "google/protobuf/timestamp.proto";
 
+option go_package = "github.com/egor1344/otus_calendar/calendar/models/event";
+
 message Event {
     int64 id = 1;
     string title = 2; // Заголовок

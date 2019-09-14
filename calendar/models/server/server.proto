@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package calendar;
-import "otus_home/calendar/models/event/event.proto";
+import "models/event/event.proto";
 
 option go_package = "calendar_server";
 

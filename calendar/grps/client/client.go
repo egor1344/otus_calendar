@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"log"
-	event "otus_home/calendar/models/event"
-	calendar_server "otus_home/calendar/models/server"
+
+	event "github.com/egor1344/otus_calendar/calendar/models/event"
+	calendar_server "github.com/egor1344/otus_calendar/calendar/models/server"
 
 	"github.com/golang/protobuf/ptypes"
 
