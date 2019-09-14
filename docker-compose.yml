@@ -1,0 +1,33 @@
+version: '3.7'
+
+x-app_environment: &app_environment
+  environment:
+    - CALENDAR_HOST
+    - CALENDAR_PORT
+    - GOPATH
+    - GOBIN
+    - GO111MODULE
+
+services:
+  calendar:
+    build:
+      context: ./calendar
+    restart: unless-stopped
+    volumes:
+      - ./calendar:/app:cached
+    depends_on:
+      - db
+      - rabbitmq
+    command: go run a
+    <<: *app_environment
+
+  rabbitmq:
+    image: 'rabbitmq:latest'
+
+  db:
+    image: postgres:11-alpine
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    restart: unless-stopped
+    ports:
+      - 15145:5432

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package event;
+
+import "google/protobuf/timestamp.proto";
+
+message Event {
+    int64 id = 1;
+    string title = 2; // Заголовок
+    google.protobuf.Timestamp date = 3; // Дата и время события
+    int64 duration = 4; // Длительность события в секундах
+    string description = 5; // Описание
+    int64 user_id = 6; //  ID пользователя
+    int64 before_duration = 7; // Таймер в секундах
+}

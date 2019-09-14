@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package calendar;
+import "otus_home/calendar/models/event/event.proto";
+
+option go_package = "calendar_server";
+
+service CalendarEvent {
+    rpc AddEvent (AddEventRequest) returns (AddEventResponse);
+    rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse);
+    rpc DeleteEvent (DeleteEventRequest) returns (DeleteEventResponse);
+}
+
+message AddEventRequest {
+    event.Event event = 1;
+}
+
+message AddEventResponse {
+    string status = 1;
+}
+
+message UpdateEventRequest {
+    int32 id = 1;
+}
+
+message UpdateEventResponse {
+    string status = 1;
+}
+
+message DeleteEventRequest {
+    int32 id = 1;
+}
+
+message DeleteEventResponse {
+    string status = 1;
+}

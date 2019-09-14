@@ -1,0 +1,5 @@
+title = "Calendar Config"
+
+[web]
+site="localhost"
+port=8000
