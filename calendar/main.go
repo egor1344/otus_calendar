@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	config "github.com/egor1344/otus_calendar/calendar/config"
-	server "github.com/egor1344/otus_calendar/calendar/grps/server"
+	server "github.com/egor1344/otus_calendar/calendar/internal/grps/server"
 	loggers "github.com/egor1344/otus_calendar/calendar/logger"
 	"github.com/spf13/viper"
 )
