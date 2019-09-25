@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	db "github.com/egor1344/otus_calendar/calendar/db"
+	db "github.com/egor1344/otus_calendar/calendar/internal/database/postgres"
 	"github.com/egor1344/otus_calendar/calendar/internal/domain/services/event"
 	calendar_server "github.com/egor1344/otus_calendar/calendar/models/server"
 
