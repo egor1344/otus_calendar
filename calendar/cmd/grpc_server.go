@@ -5,19 +5,19 @@ import (
 
 	"github.com/egor1344/otus_calendar/calendar/internal/database"
 	"github.com/egor1344/otus_calendar/calendar/internal/domain/services"
-	"github.com/egor1344/otus_calendar/calendar/internal/grps/server"
+	grpsServer "github.com/egor1344/otus_calendar/calendar/internal/grps/server"
 	"github.com/spf13/cobra"
 )
 
-func construct(dsn string) (*server.CalendarServer, error) {
+func construct(dsn string) (*grpsServer.CalendarServer, error) {
 	eventStorage, err := database.NewPgEventStorage(dsn)
 	if err != nil {
 		return nil, err
 	}
-	eventService := &services.EventService{
-		EventStorage: eventStorage,
+	eventService := &services.Service{
+		Database: eventStorage,
 	}
-	server := &server.CalendarServer{
+	server := &grpsServer.CalendarServer{
 		EventService: eventService,
 	}
 	return server, nil
@@ -38,6 +38,9 @@ var GrpcServerCmd = &cobra.Command{
 		}
 		address := host + ":" + port
 		err = server.RunServer("tcp", address)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

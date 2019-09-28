@@ -3,12 +3,14 @@ package cmd
 import (
 	"context"
 	"log"
+	"time"
+
+	protoEvent "github.com/egor1344/otus_calendar/calendar/proto/event"
+	protoServer "github.com/egor1344/otus_calendar/calendar/proto/server"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
-	"time"
-
 )
 
 var server string
@@ -31,48 +33,42 @@ func parseTs(s string) (*timestamp.Timestamp, error) {
 	return ts, nil
 }
 
-// GrpcClientCmd cobra run client 
+// GrpcClientCmd cobra run client
 var GrpcClientCmd = &cobra.Command{
-	Use: "grpc_client",
+	Use:   "grpc_client",
 	Short: "Run grpc client",
 	Run: func(cmd *cobra.Command, args []string) {
 		conn, err := grpc.Dial(server, grpc.WithInsecure())
 		if err != nil {
 			log.Fatal(err)
 		}
-		client := api.NewCalendarServiceClient(conn)
-		st, err := parseTs(startTime)
+		client := protoServer.NewCalendarEventClient(conn)
+		// st, err := parseTs(startTime)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// et, err := parseTs(endTime)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		req := &protoServer.AddEventRequest{
+			Event: &protoEvent.Event{
+				Id: 1,
+			},
+		}
+		resp, err := client.AddEvent(context.Background(), req)
 		if err != nil {
 			log.Fatal(err)
 		}
-		et, err := parseTs(endTime)
-		if err != nil {
-			log.Fatal(err)
-		}
-		req := &api.CreateEventRequest {
-			Title: title, 
-			Text: text,
-			StartTime: st,
-			EndTime: et,
-		}
-		resp, err := client.CreateEvent(context.Background(), req)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if resp.GetError() != ""{
-			log.Fatal(resp.GetError())
-		} else {
-			log.Println(resp.GetEnvent().id)
-		}
+		log.Println(resp.GetStatus())
 	},
 }
 
-func init(){
+func init() {
 	GrpcClientCmd.Flags().StringVar(&server, "server", "localhost:8000", "host server")
 	GrpcClientCmd.Flags().StringVar(&title, "title", "", "event title")
 	GrpcClientCmd.Flags().StringVar(&text, "text", "", "event text")
 	GrpcClientCmd.Flags().StringVar(&startTime, "start-time", "", "event startTime")
 	GrpcClientCmd.Flags().StringVar(&endTime, "end-time", "", "event endTime")
-	
-	
+
 }

@@ -20,8 +20,8 @@ type CalendarServer struct {
 func (s *CalendarServer) AddEvent(ctx context.Context, in *calendar_server.AddEventRequest) (*calendar_server.AddEventResponse, error) {
 	log.Println("add event", in.GetEvent())
 	event := in.GetEvent()
-	event, err := s.EventService.AddEvent(ctx, event.GetTitle(), event.GetDate(), event.GetDuration(), event.GetDescription(), event.GetUserId())
-	// err := db.AddEvent(in.GetEvent())
+	newEvent, err := s.EventService.AddEvent(ctx, event.GetTitle(), event.GetDate(), event.GetDuration(), event.GetDescription(), event.GetUserId())
+	log.Println(newEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (s *CalendarServer) DeleteEvent(ctx context.Context, in *calendar_server.De
 }
 
 // RunServer - Создание сервера grpc
-func RunServer(network, address string) error {
+func (s *CalendarServer) RunServer(network, address string) error {
 	conn, err := net.Listen(network, address)
 	log.Println("server run in", address)
 	if err != nil {

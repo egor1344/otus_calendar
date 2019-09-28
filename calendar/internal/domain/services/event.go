@@ -5,8 +5,8 @@ import (
 	"log"
 
 	interfaces "github.com/egor1344/otus_calendar/calendar/internal/domain/interfaces"
+	models "github.com/egor1344/otus_calendar/calendar/internal/domain/models"
 	logger "github.com/egor1344/otus_calendar/calendar/pkg/logger"
-	models "github.com/egor1344/otus_calendar/internal/domain/models"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 )
 
@@ -16,7 +16,7 @@ type Service struct {
 }
 
 // AddEvent добавление события
-func (e *Service) AddEvent(ctx context.Context, title string, date *timestamp.Timestamp, duration int64, description string, userID int64) (models.Event, error) {
+func (e *Service) AddEvent(ctx context.Context, title string, date *timestamp.Timestamp, duration int64, description string, userID int64) (*models.Event, error) {
 	zapLog, err := logger.GetLogger()
 	if err != nil {
 		log.Fatal(err)
