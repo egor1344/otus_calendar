@@ -31,6 +31,7 @@ func parseTs(s string) (*timestamp.Timestamp, error) {
 	return ts, nil
 }
 
+// GrpcClientCmd cobra run client 
 var GrpcClientCmd = &cobra.Command{
 	Use: "grpc_client",
 	Short: "Run grpc client",

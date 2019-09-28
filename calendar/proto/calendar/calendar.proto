@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package calendar;
 
-import "models/event/event.proto";
+import "proto/event/event.proto";
 
 message Calendar {
     int64 id = 1;

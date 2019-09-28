@@ -26,9 +26,9 @@ func NewPgEventStorage(dsn string) (*PgEventStorage, error) {
 	return &PgEventStorage{db: db}, nil
 }
 
-// SaveEvent save event
-func (pges *PgEventStorage) SaveEvent(ctx context.Context, event *models.Event) error {
-	log.Println("SaveEvent!")
+// AddEvent save event
+func (pges *PgEventStorage) AddEvent(ctx context.Context, event *models.Event) error {
+	log.Println("AddEvent!")
 	return nil
 }
 

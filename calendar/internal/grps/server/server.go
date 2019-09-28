@@ -5,9 +5,8 @@ import (
 	"log"
 	"net"
 
-	db "github.com/egor1344/otus_calendar/calendar/internal/database/postgres"
 	"github.com/egor1344/otus_calendar/calendar/internal/domain/services"
-	calendar_server "github.com/egor1344/otus_calendar/calendar/models/server"
+	calendar_server "github.com/egor1344/otus_calendar/calendar/proto/server"
 
 	"google.golang.org/grpc"
 )
@@ -20,7 +19,9 @@ type CalendarServer struct {
 // AddEvent add event
 func (s *CalendarServer) AddEvent(ctx context.Context, in *calendar_server.AddEventRequest) (*calendar_server.AddEventResponse, error) {
 	log.Println("add event", in.GetEvent())
-	err := db.AddEvent(in.GetEvent())
+	event := in.GetEvent()
+	event, err := s.EventService.AddEvent(ctx, event.GetTitle(), event.GetDate(), event.GetDuration(), event.GetDescription(), event.GetUserId())
+	// err := db.AddEvent(in.GetEvent())
 	if err != nil {
 		return nil, err
 	}

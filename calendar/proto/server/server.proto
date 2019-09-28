@@ -1,9 +1,9 @@
 syntax = "proto3";
 
 package calendar;
-import "models/event/event.proto";
+import "proto/event/event.proto";
 
-option go_package = "calendar_server";
+option go_package = "server";
 
 service CalendarEvent {
     rpc AddEvent (AddEventRequest) returns (AddEventResponse);

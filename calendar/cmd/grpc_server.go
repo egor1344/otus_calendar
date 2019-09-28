@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"github.com/egor1344/otus_calendar/calendar/internal/database"
-	"github.com/egor1344/otus_calendar/calendar/internals/domain/services"
-	"github.com/egor1344/otus_calendar/calendar/internals/grpc/server"
+	"github.com/egor1344/otus_calendar/calendar/internal/domain/services"
+	"github.com/egor1344/otus_calendar/calendar/internal/grps/server"
 	"github.com/spf13/cobra"
 )
 
@@ -32,12 +32,12 @@ var GrpcServerCmd = &cobra.Command{
 	Use:   "grpc_server",
 	Short: "run grpc server",
 	Run: func(cmd *cobra.Command, args []string) {
-		server, err := construct()
+		server, err := construct(dsn)
 		if err != nil {
 			log.Fatal(err)
 		}
 		address := host + ":" + port
-		err = server.Serve(address)
+		err = server.RunServer("tcp", address)
 	},
 }
 
