@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RootCmd - cobra comamnd
+// RootCmd - cobra command
 var RootCmd = &cobra.Command{
 	Use:   "calendar",
 	Short: "Calendar micorservice",

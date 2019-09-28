@@ -6,7 +6,7 @@ import (
 	"net"
 
 	db "github.com/egor1344/otus_calendar/calendar/internal/database/postgres"
-	"github.com/egor1344/otus_calendar/calendar/internal/domain/services/event"
+	"github.com/egor1344/otus_calendar/calendar/internal/domain/services"
 	calendar_server "github.com/egor1344/otus_calendar/calendar/models/server"
 
 	"google.golang.org/grpc"
@@ -14,7 +14,7 @@ import (
 
 // CalendarServer - Реализует работу с grpc сервером
 type CalendarServer struct {
-	EventService *event.Service
+	EventService *services.Service
 }
 
 // AddEvent add event
