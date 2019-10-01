@@ -9,7 +9,7 @@ x-app_environment: &app_environment
     - GO111MODULE
 
 services:
-  calendar:
+  calendar_server:
     build:
       context: ./calendar
     restart: unless-stopped
@@ -18,8 +18,27 @@ services:
     depends_on:
       - db
       - rabbitmq
-    command: go run a
+    links:
+      - rabbitmq
+      - db
+    command: service grpc_server
     <<: *app_environment
+
+  calendar_client:
+    build:
+      context: ./calendar
+    restart: unless-stopped
+    volumes:
+      - ./calendar:/app:cached
+    depends_on:
+      - db
+      - rabbitmq
+    command: service grpc_server
+    links:
+      - rabbitmq
+      - db
+    <<: *app_environment
+
 
   rabbitmq:
     image: 'rabbitmq:latest'

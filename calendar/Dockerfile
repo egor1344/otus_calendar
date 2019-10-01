@@ -5,4 +5,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+RUN make build_server
+COPY service /usr/bin/
+RUN chmod +x /usr/bin/service
 EXPOSE 8080

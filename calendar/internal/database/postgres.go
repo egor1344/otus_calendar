@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/egor1344/otus_calendar/calendar/internal/domain/models"
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 )
 

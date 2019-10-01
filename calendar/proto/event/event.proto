@@ -13,5 +13,4 @@ message Event {
     int64 duration = 4; // Длительность события в секундах
     string description = 5; // Описание
     int64 user_id = 6; //  ID пользователя
-    int64 before_duration = 7; // Таймер в секундах
 }
