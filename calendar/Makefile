@@ -1,20 +1,8 @@
 GOPATH=$(pwd)
 PWD=$(pwd)
 
-build:
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go build .
-
-test:
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go test -v  ./...
-
-lint:
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN)  golangci-lint run --enable-all
-
-run:
-	@GOPATH=$(GOPATH) GOBIN=$(GOBIN) go run cmd/calendar/main.go
-
 generate_proto:
-	protoc proto/event/event.proto --go_out=.
+	protoc proto/event/event.proto --go_out=plugins=grpc:.
 	protoc proto/server/server.proto --go_out=plugins=grpc:.
 	protoc proto/calendar/calendar.proto --go_out=plugins=grpc:.
 

@@ -7,6 +7,7 @@ option go_package = "server";
 
 service CalendarEvent {
     rpc AddEvent (AddEventRequest) returns (AddEventResponse);
+    rpc GetEvent (GetEventRequest) returns (GetEventResponse);
     rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse);
     rpc DeleteEvent (DeleteEventRequest) returns (DeleteEventResponse);
 }
@@ -16,15 +17,34 @@ message AddEventRequest {
 }
 
 message AddEventResponse {
-    string status = 1;
+    oneof result {
+        event.Event event = 1;
+        string error = 2;
+    }
 }
+
+
+message GetEventRequest {
+    string id = 1;
+}
+
+message GetEventResponse {
+    oneof result {
+        event.Event event = 1;
+        string error = 2;
+    }
+}
+
 
 message UpdateEventRequest {
     int32 id = 1;
 }
 
 message UpdateEventResponse {
-    string status = 1;
+    oneof result {
+        event.Event event = 1;
+        string error = 2;
+    }
 }
 
 message DeleteEventRequest {

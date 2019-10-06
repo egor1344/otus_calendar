@@ -38,29 +38,34 @@ var GrpcClientCmd = &cobra.Command{
 	Use:   "grpc_client",
 	Short: "Run grpc client",
 	Run: func(cmd *cobra.Command, args []string) {
+		log.Println(server)
 		conn, err := grpc.Dial(server, grpc.WithInsecure())
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error connect to grpc server ", server, err)
 		}
+		defer conn.Close()
 		client := protoServer.NewCalendarEventClient(conn)
-		// st, err := parseTs(startTime)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// et, err := parseTs(endTime)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
 		req := &protoServer.AddEventRequest{
 			Event: &protoEvent.Event{
-				Id: 1,
+				Date: ptypes.TimestampNow(), Title: "test", Description: "Description", UserId: 1,
 			},
 		}
+		log.Println(req)
 		resp, err := client.AddEvent(context.Background(), req)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("add event error ", err)
 		}
-		log.Println(resp.GetStatus())
+		log.Println(resp.GetResult())
+		// req = &protoServer.AddEventRequest{
+		// 	Event: &protoEvent.Event{
+		// 		Date: ptypes.TimestampNow(), Title: "test", Description: "Description", UserId: 1,
+		// 	},
+		// }
+		// log.Println(req)
+		// resp, err = client.AddEvent(context.Background(), req)
+		// if err != nil {
+		// 	log.Fatal("add event error ", err)
+		// }
 	},
 }
 

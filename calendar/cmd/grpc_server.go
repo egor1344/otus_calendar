@@ -45,7 +45,7 @@ var GrpcServerCmd = &cobra.Command{
 }
 
 func init() {
-	GrpcServerCmd.Flags().StringVar(&host, "host", "localhost", "Host server")
+	GrpcServerCmd.Flags().StringVar(&host, "host", "0.0.0.0", "Host server")
 	GrpcServerCmd.Flags().StringVar(&port, "port", "8000", "Port server")
 	GrpcServerCmd.Flags().StringVar(&dsn, "dsn", "host=db port=5432 user=postgres dbname=postgres sslmode=disable", "databse connection string")
 }

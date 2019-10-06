@@ -9,7 +9,7 @@ x-app_environment: &app_environment
     - GO111MODULE
 
 services:
-  calendar_server:
+  server:
     build:
       context: ./calendar
     restart: unless-stopped
@@ -17,25 +17,25 @@ services:
       - ./calendar:/app:cached
     depends_on:
       - db
-      - rabbitmq
     links:
-      - rabbitmq
       - db
-    command: service grpc_server
+    command: go run main.go grpc_server
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
     <<: *app_environment
 
-  calendar_client:
+  client:
     build:
       context: ./calendar
-    restart: unless-stopped
+    restart: "no"
     volumes:
       - ./calendar:/app:cached
     depends_on:
       - db
-      - rabbitmq
-    command: service grpc_server
+    command: go run main.go grpc_client
     links:
-      - rabbitmq
       - db
     <<: *app_environment
 
@@ -50,3 +50,14 @@ services:
     restart: unless-stopped
     ports:
       - 15145:5432
+  
+  worker:
+    build:
+      context: ./background_workers
+    restart: unless-stopped
+    volumes:
+      - ./background_workers:/app:cached
+    depends_on:
+      - db
+      - rabbitmq
+    command: go run main.go

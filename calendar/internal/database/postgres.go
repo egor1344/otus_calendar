@@ -30,12 +30,37 @@ func NewPgEventStorage(dsn string) (*PgEventStorage, error) {
 // AddEvent save event
 func (pges *PgEventStorage) AddEvent(ctx context.Context, event *models.Event) error {
 	log.Println("AddEvent!")
+	query := `
+		INSERT INTO events(title, date_time, duration, owner, description)
+		VALUES (:title, :date_time, :duration, :owner, :description)
+	`
+	_, err := pges.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"title":       event.Title,
+		"date_time":   event.Datetime,
+		"duration":    event.Duration,
+		"owner":       event.UserID,
+		"description": event.Description,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }
 
 // GetEventByID get event
 func (pges *PgEventStorage) GetEventByID(ctx context.Context, id string) (*models.Event, error) {
 	log.Println("GetEventByID")
+	query := `
+		SELECT (title, date_time, duration, owner, description) FROM events
+		WHERE (id=:id)
+	`
+	row, err := pges.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"id": id,
+	})
+	log.Println(row)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil, nil
 }
 

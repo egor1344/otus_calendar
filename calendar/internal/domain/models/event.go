@@ -6,10 +6,10 @@ import (
 
 // Event - структура события
 type Event struct {
-	ID          int64
-	Title       string
-	Datetime    time.Time
-	Duration    int64
-	Description string
-	UserID      int64
+	ID          int64     `json:"id" db:"id"`
+	Title       string    `json:"title" db:"title"`
+	Datetime    time.Time `json:"date_time" db:"date_time"`
+	Duration    int64     `json:"duration" db:"duration"`
+	Description string    `json:"description" db:"description"`
+	UserID      int64     `json:"ower" db:"owner"`
 }

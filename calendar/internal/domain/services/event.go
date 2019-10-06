@@ -7,6 +7,7 @@ import (
 	interfaces "github.com/egor1344/otus_calendar/calendar/internal/domain/interfaces"
 	models "github.com/egor1344/otus_calendar/calendar/internal/domain/models"
 	logger "github.com/egor1344/otus_calendar/calendar/pkg/logger"
+	ptypes "github.com/golang/protobuf/ptypes"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 )
 
@@ -21,6 +22,13 @@ func (e *Service) AddEvent(ctx context.Context, title string, date *timestamp.Ti
 	if err != nil {
 		log.Fatal(err)
 	}
-	zapLog.Info(ctx, title, date, duration, description, userID)
-	return nil, nil
+	// todo: validation
+	dateTime, err := ptypes.Timestamp(date)
+	if err != nil {
+		log.Fatal(err)
+	}
+	event := models.Event{Title: title, Datetime: dateTime, Duration: duration, Description: description, UserID: userID}
+	zapLog.Info(event)
+	e.Database.AddEvent(ctx, &event)
+	return &event, nil
 }
