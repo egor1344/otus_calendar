@@ -8,6 +8,12 @@ x-app_environment: &app_environment
     - GOBIN
     - GO111MODULE
 
+x-worker_env: &worker_env
+    environment:
+    - DB_DSN
+    - AMQP_DSN
+    - QUEUE_NAME
+
 services:
   server:
     build:
@@ -25,7 +31,8 @@ services:
     ports:
       - "8000:8000"
     <<: *app_environment
-
+    
+  # Эмулирование работы пльзователя
   client:
     build:
       context: ./calendar
@@ -41,7 +48,15 @@ services:
 
 
   rabbitmq:
-    image: 'rabbitmq:latest'
+    image: 'rabbitmq:3.7.17-management'
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    expose:
+      - "15672"
+    volumes:
+      - ./rabbit.def.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbit.config:/etc/rabbitmq/rabbitmq.config:ro
 
   db:
     image: postgres:11-alpine
@@ -51,13 +66,28 @@ services:
     ports:
       - 15145:5432
   
-  worker:
+  # Сервис читает базу и отсылает уведомления в rabbitmq
+  get_notify:
     build:
-      context: ./background_workers
+      context: ./get_notify
     restart: unless-stopped
     volumes:
-      - ./background_workers:/app:cached
+      - ./get_notify:/app:cached
     depends_on:
       - db
       - rabbitmq
     command: go run main.go
+    <<: *worker_env
+
+# Сервис читает очередь из rabbitmq, и эмулирует работу отправки уведомлений пользователям
+  send_notify:
+    build:
+      context: ./send_notify
+    restart: unless-stopped
+    volumes:
+      - ./send_notify:/app:cached
+    depends_on:
+      - db
+      - rabbitmq
+    command: go run main.go
+    <<: *worker_env
