@@ -1,21 +1,17 @@
--- Table: public.events
-
--- DROP TABLE public.events;
-
-CREATE TABLE public.events
+create table events
 (
-    date_time timestamp without time zone,
-    description text COLLATE pg_catalog."default",
-    duration bigint,
-    id integer NOT NULL DEFAULT nextval('events_id_seq'::regclass),
-    owner bigint,
-    title text COLLATE pg_catalog."default",
-    CONSTRAINT events_pkey PRIMARY KEY (id)
-)
-WITH (
-    OIDS = FALSE
-)
-TABLESPACE pg_default;
+    date_time        timestamp,
+    description      text,
+    duration         bigint,
+    owner            bigint,
+    title            text,
+    before_time_pull bigint,
+    id               uuid default gen_random_uuid() not null
+        constraint events_pkey
+            primary key,
+    send             boolean
+);
 
-ALTER TABLE public.events
-    OWNER to postgres;
+alter table events
+    owner to postgres;
+

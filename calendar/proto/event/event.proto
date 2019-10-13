@@ -7,10 +7,11 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/egor1344/otus_calendar/calendar/proto/event";
 
 message Event {
-    int64 id = 1;
+    string uuid = 1; // UUID события
     string title = 2; // Заголовок
-    google.protobuf.Timestamp date = 3; // Дата и время события
+    google.protobuf.Timestamp datetime = 3; // Дата и время события
     int64 duration = 4; // Длительность события в секундах
     string description = 5; // Описание
     int64 user_id = 6; //  ID пользователя
+    int64 before_time_pull = 7; // За сколько времени высылать события
 }

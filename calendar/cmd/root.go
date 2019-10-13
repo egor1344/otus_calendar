@@ -13,4 +13,6 @@ var RootCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(GrpcServerCmd)
 	RootCmd.AddCommand(GrpcClientCmd)
+	RootCmd.AddCommand(SchedulerCmd)
+	RootCmd.AddCommand(MailingCmd)
 }

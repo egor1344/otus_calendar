@@ -13,6 +13,7 @@ x-worker_env: &worker_env
     - DB_DSN
     - AMQP_DSN
     - QUEUE_NAME
+    - PERIOD_CLEAR_MINUTE
 
 services:
   server:
@@ -46,6 +47,34 @@ services:
       - db
     <<: *app_environment
 
+  scheduler:
+    build:
+      context: ./calendar
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./calendar:/app:cached
+    command: wait-for rabbitmq:5672 -t 10 -- go run main.go scheduler
+    links:
+      - db
+      - rabbitmq
+    <<: *worker_env
+
+  mailing:
+    build:
+      context: ./calendar
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./calendar:/app:cached
+    command: wait-for rabbitmq:5672 -t 10 -- go run main.go mailing
+    links:
+      - db
+      - rabbitmq
+    <<: *worker_env
+
 
   rabbitmq:
     image: 'rabbitmq:3.7.17-management'
@@ -65,29 +94,3 @@ services:
     restart: unless-stopped
     ports:
       - 15145:5432
-  
-  # Сервис читает базу и отсылает уведомления в rabbitmq
-  get_notify:
-    build:
-      context: ./get_notify
-    restart: unless-stopped
-    volumes:
-      - ./get_notify:/app:cached
-    depends_on:
-      - db
-      - rabbitmq
-    command: go run main.go
-    <<: *worker_env
-
-# Сервис читает очередь из rabbitmq, и эмулирует работу отправки уведомлений пользователям
-  send_notify:
-    build:
-      context: ./send_notify
-    restart: unless-stopped
-    volumes:
-      - ./send_notify:/app:cached
-    depends_on:
-      - db
-      - rabbitmq
-    command: go run main.go
-    <<: *worker_env

@@ -28,23 +28,31 @@ func NewPgEventStorage(dsn string) (*PgEventStorage, error) {
 }
 
 // AddEvent save event
-func (pges *PgEventStorage) AddEvent(ctx context.Context, event *models.Event) error {
+func (pges *PgEventStorage) AddEvent(ctx context.Context, event *models.Event) (string, error) {
 	log.Println("AddEvent!")
 	query := `
-		INSERT INTO events(title, date_time, duration, owner, description)
-		VALUES (:title, :date_time, :duration, :owner, :description)
+		INSERT INTO events(title, date_time, duration, owner, description, before_time_pull, send)
+		VALUES (:title, :date_time, :duration, :owner, :description, :before_time_pull, :send) RETURNING id
 	`
-	_, err := pges.db.NamedExecContext(ctx, query, map[string]interface{}{
-		"title":       event.Title,
-		"date_time":   event.Datetime,
-		"duration":    event.Duration,
-		"owner":       event.UserID,
-		"description": event.Description,
+	result, err := pges.db.NamedQueryContext(ctx, query, map[string]interface{}{
+		"title":            event.Title,
+		"date_time":        event.DateTime,
+		"duration":         event.Duration,
+		"owner":            event.UserID,
+		"description":      event.Description,
+		"before_time_pull": event.BeforeTimePull,
+		"send":             false,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
-	return nil
+	defer result.Close()
+
+	var returnUUID string
+	result.Next()
+	result.Scan(&returnUUID)
+	log.Println(result, returnUUID)
+	return returnUUID, nil
 }
 
 // GetEventByID get event

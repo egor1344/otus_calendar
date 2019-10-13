@@ -47,7 +47,7 @@ var GrpcClientCmd = &cobra.Command{
 		client := protoServer.NewCalendarEventClient(conn)
 		req := &protoServer.AddEventRequest{
 			Event: &protoEvent.Event{
-				Date: ptypes.TimestampNow(), Title: "test", Description: "Description", UserId: 1,
+				Datetime: ptypes.TimestampNow(), Title: "test", Description: "Description", UserId: 1,
 			},
 		}
 		log.Println(req)
@@ -70,7 +70,7 @@ var GrpcClientCmd = &cobra.Command{
 }
 
 func init() {
-	GrpcClientCmd.Flags().StringVar(&server, "server", "localhost:8000", "host server")
+	GrpcClientCmd.Flags().StringVar(&server, "server", "server:8000", "host server")
 	GrpcClientCmd.Flags().StringVar(&title, "title", "", "event title")
 	GrpcClientCmd.Flags().StringVar(&text, "text", "", "event text")
 	GrpcClientCmd.Flags().StringVar(&startTime, "start-time", "", "event startTime")

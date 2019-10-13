@@ -21,7 +21,7 @@ func (s *CalendarServer) AddEvent(ctx context.Context, in *calendar_server.AddEv
 	log.Println("add event", in.GetEvent())
 	event := in.GetEvent()
 	log.Println(s)
-	newEvent, err := s.EventService.AddEvent(ctx, event.GetTitle(), event.GetDate(), event.GetDuration(), event.GetDescription(), event.GetUserId())
+	newEvent, err := s.EventService.AddEvent(ctx, event.GetTitle(), event.GetDatetime(), event.GetDuration(), event.GetDescription(), event.GetUserId(), event.GetBeforeTimePull())
 	log.Println(newEvent)
 	if err != nil {
 		response := &calendar_server.AddEventResponse{

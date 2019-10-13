@@ -4,11 +4,11 @@ import (
 	"context"
 	"log"
 
-	interfaces "github.com/egor1344/otus_calendar/calendar/internal/domain/interfaces"
-	models "github.com/egor1344/otus_calendar/calendar/internal/domain/models"
-	logger "github.com/egor1344/otus_calendar/calendar/pkg/logger"
-	ptypes "github.com/golang/protobuf/ptypes"
-	timestamp "github.com/golang/protobuf/ptypes/timestamp"
+	"github.com/egor1344/otus_calendar/calendar/internal/domain/interfaces"
+	"github.com/egor1344/otus_calendar/calendar/internal/domain/models"
+	"github.com/egor1344/otus_calendar/calendar/pkg/logger"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
 // Service сервис предоставляющий работу с событиями
@@ -17,7 +17,7 @@ type Service struct {
 }
 
 // AddEvent добавление события
-func (e *Service) AddEvent(ctx context.Context, title string, date *timestamp.Timestamp, duration int64, description string, userID int64) (*models.Event, error) {
+func (e *Service) AddEvent(ctx context.Context, title string, date *timestamp.Timestamp, duration int64, description string, userID int64, beforeTimePull int64) (*models.Event, error) {
 	zapLog, err := logger.GetLogger()
 	if err != nil {
 		log.Fatal(err)
@@ -27,8 +27,13 @@ func (e *Service) AddEvent(ctx context.Context, title string, date *timestamp.Ti
 	if err != nil {
 		log.Fatal(err)
 	}
-	event := models.Event{Title: title, Datetime: dateTime, Duration: duration, Description: description, UserID: userID}
+	event := models.Event{Title: title, DateTime: dateTime, Duration: duration, Description: description, UserID: userID, BeforeTimePull: beforeTimePull}
+	id, err := e.Database.AddEvent(ctx, &event)
+	if err != nil {
+		log.Fatal(err)
+	}
+	zapLog.Info(id)
+	event.UUID = id
 	zapLog.Info(event)
-	e.Database.AddEvent(ctx, &event)
 	return &event, nil
 }
