@@ -37,3 +37,22 @@ func (e *Service) GetEvent(ctx context.Context, uuid string) (*event.Event, erro
 	e.Log.Info(ev)
 	return ev, nil
 }
+
+// UpdateEvent обновление событий
+func (e *Service) UpdateEvent(ctx context.Context, event *event.Event) (*event.Event, error) {
+	ev, err := e.Database.UpdateEventByID(ctx, event)
+	if err != nil {
+		e.Log.Fatal(err)
+	}
+	e.Log.Info(ev)
+	return ev, nil
+}
+
+// DeleteEvent удалений событий
+func (e *Service) DeleteEvent(ctx context.Context, id string) error {
+	err := e.Database.DeleteEventByID(ctx, id)
+	if err != nil {
+		e.Log.Fatal(err)
+	}
+	return nil
+}

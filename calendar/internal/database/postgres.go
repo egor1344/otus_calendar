@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"github.com/egor1344/otus_calendar/calendar/internal/domain/models"
 	"github.com/egor1344/otus_calendar/calendar/proto/event"
 	"github.com/golang/protobuf/ptypes"
 	_ "github.com/jackc/pgx/stdlib"
@@ -88,13 +87,26 @@ func (pges *PgEventStorage) GetEventByID(ctx context.Context, id string) (*event
 }
 
 // UpdateEventByID update event
-func (pges *PgEventStorage) UpdateEventByID(ctx context.Context, id int64, updateEvent *models.Event) (*models.Event, error) {
+func (pges *PgEventStorage) UpdateEventByID(ctx context.Context, updateEvent *event.Event) (*event.Event, error) {
 	pges.Log.Info("UpdateEventByID")
-	return nil, nil
+	dateTime, err := ptypes.Timestamp(updateEvent.Datetime)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = pges.db.Exec(`UPDATE events SET title=$1, date_time=$2, duration=$3, owner=$4, description=$5, send=false WHERE id::uuid in ($6)`,
+		updateEvent.Title, dateTime, updateEvent.Duration, updateEvent.UserId, updateEvent.Description, updateEvent.Uuid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return updateEvent, nil
 }
 
 // DeleteEventByID delete event
-func (pges *PgEventStorage) DeleteEventByID(ctx context.Context, id int64) error {
+func (pges *PgEventStorage) DeleteEventByID(ctx context.Context, id string) error {
 	pges.Log.Info("DeleteEventByID")
+	_, err := pges.db.Exec(`DELETE FROM events WHERE "id" = $1`, id)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return nil
 }

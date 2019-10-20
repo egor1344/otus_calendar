@@ -37,7 +37,7 @@ message GetEventResponse {
 
 
 message UpdateEventRequest {
-    int32 id = 1;
+    event.Event event = 1;
 }
 
 message UpdateEventResponse {
@@ -48,7 +48,7 @@ message UpdateEventResponse {
 }
 
 message DeleteEventRequest {
-    int32 id = 1;
+    string id = 1;
 }
 
 message DeleteEventResponse {

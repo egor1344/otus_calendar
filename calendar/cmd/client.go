@@ -51,6 +51,7 @@ var GrpcClientCmd = &cobra.Command{
 		}
 		defer conn.Close()
 		client := protoServer.NewCalendarEventClient(conn)
+		// Добавление события
 		req := &protoServer.AddEventRequest{
 			Event: &protoEvent.Event{
 				Datetime: ptypes.TimestampNow(), Title: "test", Description: "Description", UserId: 1,
@@ -64,6 +65,7 @@ var GrpcClientCmd = &cobra.Command{
 		event := resp.GetEvent()
 		zapLog.Info(event)
 		zapLog.Info(event.Uuid)
+		// Получение события
 		reqGet := &protoServer.GetEventRequest{
 			Id: event.Uuid,
 		}
@@ -74,6 +76,34 @@ var GrpcClientCmd = &cobra.Command{
 		}
 		event = respGet.GetEvent()
 		zapLog.Info(event)
+		// Обновление события
+		reqUpdate := &protoServer.UpdateEventRequest{
+			Event: &protoEvent.Event{
+				Uuid:        event.Uuid,
+				Datetime:    ptypes.TimestampNow(),
+				Title:       "test_update",
+				Description: "update_description",
+				UserId:      1,
+			},
+		}
+		zapLog.Info(reqUpdate)
+		respUpdate, err := client.UpdateEvent(context.Background(), reqUpdate)
+		if err != nil {
+			zapLog.Fatal("update event error ", err)
+		}
+		event = respUpdate.GetEvent()
+		zapLog.Info(event)
+		// Удаление события
+		reqDelete := &protoServer.DeleteEventRequest{
+			Id: event.Uuid,
+		}
+		zapLog.Info(reqDelete)
+		respDelete, err := client.DeleteEvent(context.Background(), reqDelete)
+		if err != nil {
+			zapLog.Fatal("delete event error ", err)
+		}
+		status := respDelete.GetStatus()
+		zapLog.Info(status)
 	},
 }
 

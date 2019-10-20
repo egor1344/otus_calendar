@@ -65,12 +65,31 @@ func (s *CalendarServer) GetEvent(ctx context.Context, in *calendar_server.GetEv
 	return response, nil
 }
 
-// UpdateEvent udpate event
+// UpdateEvent update event
 func (s *CalendarServer) UpdateEvent(ctx context.Context, in *calendar_server.UpdateEventRequest) (*calendar_server.UpdateEventResponse, error) {
 	s.Log.Info("update event")
+	event := in.GetEvent()
+	if event.Uuid == "" {
+		response := &calendar_server.UpdateEventResponse{
+			Result: &calendar_server.UpdateEventResponse_Error{
+				Error: "Not uuid in event",
+			},
+		}
+		return response, nil
+	}
+	event, err := s.EventService.UpdateEvent(ctx, event)
+	if err != nil {
+		response := &calendar_server.UpdateEventResponse{
+			Result: &calendar_server.UpdateEventResponse_Error{
+				Error: "Erorr happend",
+			},
+		}
+		log.Fatal(err)
+		return response, nil
+	}
 	response := &calendar_server.UpdateEventResponse{
 		Result: &calendar_server.UpdateEventResponse_Event{
-			Event: nil,
+			Event: event,
 		},
 	}
 	return response, nil
@@ -79,6 +98,15 @@ func (s *CalendarServer) UpdateEvent(ctx context.Context, in *calendar_server.Up
 // DeleteEvent delete event
 func (s *CalendarServer) DeleteEvent(ctx context.Context, in *calendar_server.DeleteEventRequest) (*calendar_server.DeleteEventResponse, error) {
 	s.Log.Info("delete event")
+	id := in.GetId()
+	err := s.EventService.DeleteEvent(ctx, id)
+	if err != nil {
+		response := &calendar_server.DeleteEventResponse{
+			Status: "error",
+		}
+		log.Fatal(err)
+		return response, nil
+	}
 	response := calendar_server.DeleteEventResponse{
 		Status: "True",
 	}
