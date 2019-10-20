@@ -3,16 +3,13 @@ package cmd
 import (
 	"context"
 	"github.com/egor1344/otus_calendar/calendar/pkg/logger"
-	"github.com/spf13/viper"
-	"log"
-	"time"
-
 	protoEvent "github.com/egor1344/otus_calendar/calendar/proto/event"
 	protoServer "github.com/egor1344/otus_calendar/calendar/proto/server"
 	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"log"
 )
 
 var server string
@@ -20,20 +17,6 @@ var title string
 var text string
 var startTime string
 var endTime string
-
-const tsLayout = "2006-01-02T15:04:05"
-
-func parseTs(s string) (*timestamp.Timestamp, error) {
-	t, err := time.Parse(tsLayout, s)
-	if err != nil {
-		return nil, err
-	}
-	ts, err := ptypes.TimestampProto(t)
-	if err != nil {
-		return nil, err
-	}
-	return ts, nil
-}
 
 // GrpcClientCmd cobra run client
 var GrpcClientCmd = &cobra.Command{

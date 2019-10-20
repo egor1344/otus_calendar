@@ -1,0 +1,58 @@
+version: '3.7'
+
+x-app_environment: &app_environment
+  environment:
+    - CALENDAR_HOST
+    - CALENDAR_PORT
+    - DB_DSN
+    - GOPATH
+    - GOBIN
+    - GO111MODULE
+
+x-worker_env: &worker_env
+  environment:
+    - DB_DSN
+    - AMQP_DSN
+    - QUEUE_NAME
+    - PERIOD_CLEAR_MINUTE
+
+services:
+  integrations_test:
+    build:
+      context: ./integrations_test
+    volumes:
+      - ./integrations_test:/opt/integration_tests:cached
+    depends_on:
+      - db
+      - rabbitmq
+    links:
+      - db
+      - server
+    command: "true"
+    <<: *app_environment
+    <<: *worker_env
+
+  db:
+    image: postgres:11-alpine
+    volumes:
+      - ./sql/create_db.sql:/docker-entrypoint-initdb.d/setup.sql
+    restart: unless-stopped
+    ports:
+      - 15146:5432
+
+  server:
+    build:
+      context: ./calendar
+    restart: unless-stopped
+    volumes:
+      - ./calendar:/app:cached
+    depends_on:
+      - db
+    links:
+      - db
+    command: wait-for db:5432 -t 10 -- go run main.go server
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"
+    <<: *app_environment

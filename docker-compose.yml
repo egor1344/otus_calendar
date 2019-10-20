@@ -33,20 +33,6 @@ services:
     ports:
       - "8000:8000"
     <<: *app_environment
-    
-  # Эмулирование работы пльзователя
-  client:
-    build:
-      context: ./calendar
-    restart: "no"
-    volumes:
-      - ./calendar:/app:cached
-    depends_on:
-      - db
-    command: wait-for server:8000 -t 10 -- go run main.go client
-    links:
-      - db
-    <<: *app_environment
 
   # Планировщик
   scheduler:
