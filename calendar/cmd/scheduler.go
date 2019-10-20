@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"encoding/json"
-	"github.com/egor1344/otus_calendar/calendar/internal/domain/models"
+	//"github.com/egor1344/otus_calendar/calendar/internal/domain/models"
 	"github.com/egor1344/otus_calendar/calendar/pkg/logger"
+	"github.com/egor1344/otus_calendar/calendar/proto/event"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
@@ -73,7 +74,7 @@ func deleteOldEvent(pgSQL *sqlx.DB) {
 }
 
 // markEventSend - пометка события завершенным
-func markEventSend(eventList []models.Event, pgSQL *sqlx.DB) {
+func markEventSend(eventList []event.Event, pgSQL *sqlx.DB) {
 	countEvent := len(eventList)
 	if countEvent > 0 {
 		var IDList strings.Builder
@@ -81,7 +82,7 @@ func markEventSend(eventList []models.Event, pgSQL *sqlx.DB) {
 
 		for i, e := range eventList {
 			IDList.WriteString("'")
-			IDList.WriteString(e.UUID)
+			IDList.WriteString(e.Uuid)
 			if i+1 != countEvent {
 				IDList.WriteString("',")
 			} else {
@@ -99,7 +100,7 @@ func markEventSend(eventList []models.Event, pgSQL *sqlx.DB) {
 }
 
 // pullInQueue Отправка сообщений в очередь
-func pullInQueue(event *models.Event, rmqCh *amqp.Channel, queue_name string) {
+func pullInQueue(event *event.Event, rmqCh *amqp.Channel, queue_name string) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		zapLog.Fatal(err)
@@ -131,7 +132,7 @@ func pullInQueue(event *models.Event, rmqCh *amqp.Channel, queue_name string) {
 }
 
 // getEventDB - получение событий из БД
-func getEventDB(pgSQL *sqlx.DB) (eventList []models.Event) {
+func getEventDB(pgSQL *sqlx.DB) (eventList []event.Event) {
 	err := pgSQL.Select(&eventList, "SELECT id, title, date_time, duration, description, owner, before_time_pull"+
 		" FROM events WHERE  (send=false and (now() >= date_time))")
 	if err != nil {
@@ -157,15 +158,35 @@ var SchedulerCmd = &cobra.Command{
 }
 
 func init() {
-	SchedulerCmd.Flags().StringVar(&dbDsn, "db_dsn", "host=db port=5432 user=postgres dbname=postgres sslmode=disable", "databse connection string")
-	SchedulerCmd.Flags().StringVar(&amqpDsn, "amqp_dsn", "amqp://guest:guest@rabbitmq:5672/", "rabbit connection string")
-	SchedulerCmd.Flags().StringVar(&amqpQueueName, "amqp_queue_name", "event_queue", "queue name")
-	SchedulerCmd.Flags().IntVar(&periodScanDb, "perion_scan_db", 1, "queue name")
+	//SchedulerCmd.Flags().StringVar(&dbDsn, "db_dsn", "host=db port=5432 user=postgres dbname=postgres sslmode=disable", "databse connection string")
+	//SchedulerCmd.Flags().StringVar(&amqpDsn, "amqp_dsn", "amqp://guest:guest@rabbitmq:5672/", "rabbit connection string")
+	//SchedulerCmd.Flags().StringVar(&amqpQueueName, "amqp_queue_name", "event_queue", "queue name")
+	//SchedulerCmd.Flags().IntVar(&periodScanDb, "perion_scan_db", 1, "queue name")
 	l, err := logger.GetLogger()
 	zapLog = l
 	if err != nil {
 		log.Fatal("Error init logger", err)
 	}
+	err = viper.BindEnv("PERIOD_CLEAR_MINUTE")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
+	err = viper.BindEnv("QUEUE_NAME")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
+	err = viper.BindEnv("AMQP_DSN")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
+	err = viper.BindEnv("DB_DSN")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
 	viper.AutomaticEnv()
 	zapLog.Info(viper.AllSettings())
+	dbDsn = viper.GetString("db_dns")
+	amqpDsn = viper.GetString("amqp_dsn")
+	amqpQueueName = viper.GetString("queue_name")
+	periodScanDb = viper.GetInt("period_clear_minute")
 }

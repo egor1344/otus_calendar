@@ -81,13 +81,31 @@ var MailingCmd = &cobra.Command{
 }
 
 func init() {
-	MailingCmd.Flags().StringVar(&mailingAmqpDsn, "amqp_dsn", "amqp://guest:guest@rabbitmq:5672/", "rabbit connection string")
-	MailingCmd.Flags().StringVar(&mailingAmqpQueueName, "amqp_queue_name", "event_queue", "queue name")
+	//MailingCmd.Flags().StringVar(&mailingAmqpDsn, "amqp_dsn", "amqp://guest:guest@rabbitmq:5672/", "rabbit connection string")
+	//MailingCmd.Flags().StringVar(&mailingAmqpQueueName, "amqp_queue_name", "event_queue", "queue name")
 	l, err := logger.GetLogger()
 	zapLog = l
 	if err != nil {
 		log.Fatal("Error init logger", err)
 	}
+	err = viper.BindEnv("PERIOD_CLEAR_MINUTE")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
+	err = viper.BindEnv("QUEUE_NAME")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
+	err = viper.BindEnv("AMQP_DSN")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
+	err = viper.BindEnv("DB_DSN")
+	if err != nil {
+		zapLog.Fatal(err)
+	}
 	viper.AutomaticEnv()
 	zapLog.Info(viper.AllSettings())
+	mailingAmqpDsn = viper.GetString("amqp_dsn")
+	mailingAmqpQueueName = viper.GetString("queue_name")
 }

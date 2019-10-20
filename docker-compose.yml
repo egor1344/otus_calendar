@@ -4,6 +4,7 @@ x-app_environment: &app_environment
   environment:
     - CALENDAR_HOST
     - CALENDAR_PORT
+    - DB_DSN
     - GOPATH
     - GOBIN
     - GO111MODULE
@@ -26,7 +27,7 @@ services:
       - db
     links:
       - db
-    command: go run main.go grpc_server
+    command: wait-for db:5432 -t 10 -- go run main.go server
     expose:
       - "8000"
     ports:
@@ -42,11 +43,12 @@ services:
       - ./calendar:/app:cached
     depends_on:
       - db
-    command: go run main.go grpc_client
+    command: wait-for server:8000 -t 10 -- go run main.go client
     links:
       - db
     <<: *app_environment
 
+  # Планировщик
   scheduler:
     build:
       context: ./calendar
@@ -55,12 +57,13 @@ services:
       - rabbitmq
     volumes:
       - ./calendar:/app:cached
-    command: wait-for rabbitmq:5672 -t 10 -- go run main.go scheduler
+    command: wait-for rabbitmq:5672 -t 10 -- ./calendar scheduler
     links:
       - db
       - rabbitmq
     <<: *worker_env
 
+  # Рассыльщик
   mailing:
     build:
       context: ./calendar
@@ -69,7 +72,7 @@ services:
       - rabbitmq
     volumes:
       - ./calendar:/app:cached
-    command: wait-for rabbitmq:5672 -t 10 -- go run main.go mailing
+    command: wait-for rabbitmq:5672 -t 10 -- ./calendar mailing
     links:
       - db
       - rabbitmq

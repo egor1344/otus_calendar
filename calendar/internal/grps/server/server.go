@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"go.uber.org/zap"
 	"log"
 	"net"
 
@@ -14,15 +15,16 @@ import (
 // CalendarServer - Реализует работу с grpc сервером
 type CalendarServer struct {
 	EventService *services.Service
+	Log          *zap.SugaredLogger
 }
 
 // AddEvent add event
 func (s *CalendarServer) AddEvent(ctx context.Context, in *calendar_server.AddEventRequest) (*calendar_server.AddEventResponse, error) {
-	log.Println("add event", in.GetEvent())
+	s.Log.Info("add event", in.GetEvent())
 	event := in.GetEvent()
-	log.Println(s)
+	s.Log.Info(s)
 	newEvent, err := s.EventService.AddEvent(ctx, event.GetTitle(), event.GetDatetime(), event.GetDuration(), event.GetDescription(), event.GetUserId(), event.GetBeforeTimePull())
-	log.Println(newEvent)
+	s.Log.Info(newEvent)
 	if err != nil {
 		response := &calendar_server.AddEventResponse{
 			Result: &calendar_server.AddEventResponse_Error{
@@ -33,7 +35,7 @@ func (s *CalendarServer) AddEvent(ctx context.Context, in *calendar_server.AddEv
 	}
 	response := &calendar_server.AddEventResponse{
 		Result: &calendar_server.AddEventResponse_Event{
-			Event: event,
+			Event: newEvent,
 		},
 	}
 	return response, nil
@@ -42,10 +44,22 @@ func (s *CalendarServer) AddEvent(ctx context.Context, in *calendar_server.AddEv
 
 // GetEvent get event
 func (s *CalendarServer) GetEvent(ctx context.Context, in *calendar_server.GetEventRequest) (*calendar_server.GetEventResponse, error) {
-	log.Println("get event")
+	s.Log.Info("get event")
+	uuid := in.GetId()
+	s.Log.Info(s)
+	event, err := s.EventService.GetEvent(ctx, uuid)
+	s.Log.Info(event)
+	if err != nil {
+		response := &calendar_server.GetEventResponse{
+			Result: &calendar_server.GetEventResponse_Error{
+				Error: "error happend",
+			},
+		}
+		return response, err
+	}
 	response := &calendar_server.GetEventResponse{
 		Result: &calendar_server.GetEventResponse_Event{
-			Event: nil,
+			Event: event,
 		},
 	}
 	return response, nil
@@ -53,7 +67,7 @@ func (s *CalendarServer) GetEvent(ctx context.Context, in *calendar_server.GetEv
 
 // UpdateEvent udpate event
 func (s *CalendarServer) UpdateEvent(ctx context.Context, in *calendar_server.UpdateEventRequest) (*calendar_server.UpdateEventResponse, error) {
-	log.Println("update event")
+	s.Log.Info("update event")
 	response := &calendar_server.UpdateEventResponse{
 		Result: &calendar_server.UpdateEventResponse_Event{
 			Event: nil,
@@ -64,7 +78,7 @@ func (s *CalendarServer) UpdateEvent(ctx context.Context, in *calendar_server.Up
 
 // DeleteEvent delete event
 func (s *CalendarServer) DeleteEvent(ctx context.Context, in *calendar_server.DeleteEventRequest) (*calendar_server.DeleteEventResponse, error) {
-	log.Println("delete event")
+	s.Log.Info("delete event")
 	response := calendar_server.DeleteEventResponse{
 		Status: "True",
 	}
@@ -74,7 +88,7 @@ func (s *CalendarServer) DeleteEvent(ctx context.Context, in *calendar_server.De
 // RunServer - Создание сервера grpc
 func (s *CalendarServer) RunServer(network, address string) error {
 	conn, err := net.Listen(network, address)
-	log.Println("server run in", network, address)
+	s.Log.Info("server run in", network, address)
 	if err != nil {
 		log.Fatal(err)
 		return err

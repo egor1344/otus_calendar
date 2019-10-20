@@ -1,3 +1,4 @@
+CREATE EXTENSION pgcrypto;
 create table events
 (
     date_time        timestamp,
