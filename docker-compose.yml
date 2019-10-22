@@ -27,7 +27,7 @@ services:
       - db
     links:
       - db
-    command: wait-for db:5432 -t 10 -- go run main.go server
+    command: wait-for db:5432 -t 60 -- go run main.go server
     expose:
       - "8000"
     ports:
@@ -43,7 +43,7 @@ services:
       - rabbitmq
     volumes:
       - ./calendar:/app:cached
-    command: wait-for rabbitmq:5672 -t 10 -- ./calendar scheduler
+    command: wait-for rabbitmq:5672 -t 60 -- ./calendar scheduler
     links:
       - db
       - rabbitmq
@@ -58,7 +58,7 @@ services:
       - rabbitmq
     volumes:
       - ./calendar:/app:cached
-    command: wait-for rabbitmq:5672 -t 10 -- ./calendar mailing
+    command: wait-for rabbitmq:5672 -t 60 -- ./calendar mailing
     links:
       - db
       - rabbitmq
