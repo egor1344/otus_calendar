@@ -113,6 +113,26 @@ func (s *CalendarServer) DeleteEvent(ctx context.Context, in *calendar_server.De
 	return &response, nil
 }
 
+// GetEventList get event list
+func (s *CalendarServer) GetEventList(ctx context.Context, in *calendar_server.GetEventListRequest) (*calendar_server.GetEventListResponse, error) {
+	s.Log.Info("get event list")
+	types := in.GetType()
+	userID := in.GetUserId()
+	s.Log.Info(types, types.String(), userID)
+	events, err := s.EventService.GetEventList(ctx, types.String(), userID)
+	if err != nil {
+		response := &calendar_server.GetEventListResponse{
+			Event: nil,
+		}
+		log.Fatal(err)
+		return response, nil
+	}
+	response := calendar_server.GetEventListResponse{
+		Event: events,
+	}
+	return &response, nil
+}
+
 // RunServer - Создание сервера grpc
 func (s *CalendarServer) RunServer(network, address string) error {
 	conn, err := net.Listen(network, address)

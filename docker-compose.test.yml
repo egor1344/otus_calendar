@@ -11,7 +11,7 @@ x-app_environment: &app_environment
 
 x-worker_env: &worker_env
   environment:
-    - DB_DSN
+    - TEST_DB_DSN
     - AMQP_DSN
     - QUEUE_NAME
     - PERIOD_CLEAR_MINUTE
@@ -38,12 +38,12 @@ services:
       - ./sql/create_db.sql:/docker-entrypoint-initdb.d/setup.sql
     restart: unless-stopped
     ports:
-      - 15146:5432
+      - 15147:5432
+
 
   server:
     build:
       context: ./calendar
-    restart: unless-stopped
     volumes:
       - ./calendar:/app:cached
     depends_on:

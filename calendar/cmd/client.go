@@ -3,9 +3,7 @@ package cmd
 import (
 	"context"
 	"github.com/egor1344/otus_calendar/calendar/pkg/logger"
-	protoEvent "github.com/egor1344/otus_calendar/calendar/proto/event"
 	protoServer "github.com/egor1344/otus_calendar/calendar/proto/server"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -34,59 +32,70 @@ var GrpcClientCmd = &cobra.Command{
 		}
 		defer conn.Close()
 		client := protoServer.NewCalendarEventClient(conn)
-		// Добавление события
-		req := &protoServer.AddEventRequest{
-			Event: &protoEvent.Event{
-				Datetime: ptypes.TimestampNow(), Title: "test", Description: "Description", UserId: 1,
-			},
+		// Неделя
+		req := &protoServer.GetEventListRequest{
+			Type: protoServer.GetEventListRequest_week,
 		}
 		zapLog.Info(req)
-		resp, err := client.AddEvent(context.Background(), req)
+		resp, err := client.GetEventList(context.Background(), req)
 		if err != nil {
 			zapLog.Fatal("add event error ", err)
 		}
 		event := resp.GetEvent()
 		zapLog.Info(event)
-		zapLog.Info(event.Uuid)
-		// Получение события
-		reqGet := &protoServer.GetEventRequest{
-			Id: event.Uuid,
-		}
-		zapLog.Info(reqGet)
-		respGet, err := client.GetEvent(context.Background(), reqGet)
-		if err != nil {
-			zapLog.Fatal("get event error ", err)
-		}
-		event = respGet.GetEvent()
-		zapLog.Info(event)
-		// Обновление события
-		reqUpdate := &protoServer.UpdateEventRequest{
-			Event: &protoEvent.Event{
-				Uuid:        event.Uuid,
-				Datetime:    ptypes.TimestampNow(),
-				Title:       "test_update",
-				Description: "update_description",
-				UserId:      1,
-			},
-		}
-		zapLog.Info(reqUpdate)
-		respUpdate, err := client.UpdateEvent(context.Background(), reqUpdate)
-		if err != nil {
-			zapLog.Fatal("update event error ", err)
-		}
-		event = respUpdate.GetEvent()
-		zapLog.Info(event)
-		// Удаление события
-		reqDelete := &protoServer.DeleteEventRequest{
-			Id: event.Uuid,
-		}
-		zapLog.Info(reqDelete)
-		respDelete, err := client.DeleteEvent(context.Background(), reqDelete)
-		if err != nil {
-			zapLog.Fatal("delete event error ", err)
-		}
-		status := respDelete.GetStatus()
-		zapLog.Info(status)
+		// Добавление события
+		//req := &protoServer.AddEventRequest{
+		//	Event: &protoEvent.Event{
+		//		Datetime: ptypes.TimestampNow(), Title: "test", Description: "Description", UserId: 1,
+		//	},
+		//}
+		//zapLog.Info(req)
+		//resp, err := client.AddEvent(context.Background(), req)
+		//if err != nil {
+		//	zapLog.Fatal("add event error ", err)
+		//}
+		//event := resp.GetEvent()
+		//zapLog.Info(event)
+		//zapLog.Info(event.Uuid)
+		//// Получение события
+		//reqGet := &protoServer.GetEventRequest{
+		//	Id: event.Uuid,
+		//}
+		//zapLog.Info(reqGet)
+		//respGet, err := client.GetEvent(context.Background(), reqGet)
+		//if err != nil {
+		//	zapLog.Fatal("get event error ", err)
+		//}
+		//event = respGet.GetEvent()
+		//zapLog.Info(event)
+		//// Обновление события
+		//reqUpdate := &protoServer.UpdateEventRequest{
+		//	Event: &protoEvent.Event{
+		//		Uuid:        event.Uuid,
+		//		Datetime:    ptypes.TimestampNow(),
+		//		Title:       "test_update",
+		//		Description: "update_description",
+		//		UserId:      1,
+		//	},
+		//}
+		//zapLog.Info(reqUpdate)
+		//respUpdate, err := client.UpdateEvent(context.Background(), reqUpdate)
+		//if err != nil {
+		//	zapLog.Fatal("update event error ", err)
+		//}
+		//event = respUpdate.GetEvent()
+		//zapLog.Info(event)
+		//// Удаление события
+		//reqDelete := &protoServer.DeleteEventRequest{
+		//	Id: event.Uuid,
+		//}
+		//zapLog.Info(reqDelete)
+		//respDelete, err := client.DeleteEvent(context.Background(), reqDelete)
+		//if err != nil {
+		//	zapLog.Fatal("delete event error ", err)
+		//}
+		//status := respDelete.GetStatus()
+		//zapLog.Info(status)
 	},
 }
 

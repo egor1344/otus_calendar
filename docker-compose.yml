@@ -27,7 +27,7 @@ services:
       - db
     links:
       - db
-    command: wait-for db:5432 -t 60 -- go run main.go server
+    command: wait-for db:5432 -t 60 -- ls
     expose:
       - "8000"
     ports:

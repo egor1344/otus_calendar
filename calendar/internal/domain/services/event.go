@@ -56,3 +56,12 @@ func (e *Service) DeleteEvent(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+// GetEventList получение списка событий по типу и userID
+func (e *Service) GetEventList(ctx context.Context, types string, userId string) (events []*event.Event, err error) {
+	events, err = e.Database.GetEventList(ctx, types, userId)
+	if err != nil {
+		e.Log.Fatal(err)
+	}
+	return events, nil
+}

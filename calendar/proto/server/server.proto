@@ -10,6 +10,7 @@ service CalendarEvent {
     rpc GetEvent (GetEventRequest) returns (GetEventResponse);
     rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse);
     rpc DeleteEvent (DeleteEventRequest) returns (DeleteEventResponse);
+    rpc GetEventList (GetEventListRequest) returns (GetEventListResponse);
 }
 
 message AddEventRequest {
@@ -53,4 +54,18 @@ message DeleteEventRequest {
 
 message DeleteEventResponse {
     string status = 1;
+}
+
+message GetEventListRequest {
+    enum Type {
+        week = 0;
+        month = 1;
+        year = 2;
+    };
+    Type type = 1;
+    string userId = 2;
+}
+
+message GetEventListResponse {
+    repeated event.Event event = 1;
 }

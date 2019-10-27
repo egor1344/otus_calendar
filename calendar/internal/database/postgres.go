@@ -110,3 +110,28 @@ func (pges *PgEventStorage) DeleteEventByID(ctx context.Context, id string) erro
 	}
 	return nil
 }
+
+// GetEventList get event list with types
+func (pges *PgEventStorage) GetEventList(ctx context.Context, types string, userId string) ([]*event.Event, error) {
+	pges.Log.Info("GetEventList")
+	var eventList []*event.Event
+	var t string
+	switch types {
+	case "year":
+		t = "years"
+	case "month":
+		t = "months"
+	default:
+		t = "weeks"
+	}
+	err := pges.db.Select(eventList, "SELECT title, date_time, duration, owner, description "+
+		" FROM events "+
+		" WHERE (owner = 1 and "+
+		" ((date_time >= now()) and "+
+		" (date_time <= now() + make_interval($1 := 1))))", t)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	return eventList, nil
+}
