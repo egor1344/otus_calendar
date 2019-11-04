@@ -28,7 +28,7 @@ services:
     links:
       - db
       - server
-    command: "true"
+    command: go test
     <<: *app_environment
     <<: *worker_env
 
