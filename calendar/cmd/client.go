@@ -33,15 +33,37 @@ var GrpcClientCmd = &cobra.Command{
 		defer conn.Close()
 		client := protoServer.NewCalendarEventClient(conn)
 		// Неделя
+		zapLog.Info("week")
 		req := &protoServer.GetEventListRequest{
 			Type: protoServer.GetEventListRequest_week,
 		}
-		zapLog.Info(req)
 		resp, err := client.GetEventList(context.Background(), req)
 		if err != nil {
 			zapLog.Fatal("add event error ", err)
 		}
 		event := resp.GetEvent()
+		zapLog.Info(event)
+		// Месяц
+		zapLog.Info("month")
+		req = &protoServer.GetEventListRequest{
+			Type: protoServer.GetEventListRequest_month,
+		}
+		resp, err = client.GetEventList(context.Background(), req)
+		if err != nil {
+			zapLog.Fatal("add event error ", err)
+		}
+		event = resp.GetEvent()
+		zapLog.Info(event)
+		// Год
+		zapLog.Info("year")
+		req = &protoServer.GetEventListRequest{
+			Type: protoServer.GetEventListRequest_year,
+		}
+		resp, err = client.GetEventList(context.Background(), req)
+		if err != nil {
+			zapLog.Fatal("add event error ", err)
+		}
+		event = resp.GetEvent()
 		zapLog.Info(event)
 		// Добавление события
 		//req := &protoServer.AddEventRequest{

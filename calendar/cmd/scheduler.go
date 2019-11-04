@@ -39,7 +39,7 @@ func construc(db_dsn, amqp_dsn, amqp_queue_name string, periodScanDb int) {
 		zapLog.Fatal(err)
 	}
 	defer rmqCh.Close()
-	ticker := time.NewTicker(time.Duration(periodScanDb) * time.Minute)
+	ticker := time.NewTicker(time.Duration(periodScanDb) * time.Second)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -47,15 +47,15 @@ func construc(db_dsn, amqp_dsn, amqp_queue_name string, periodScanDb int) {
 			select {
 			case <-ticker.C:
 				zapLog.Info("Scan db")
-				runScheduler(rmqCh, pgSQL, amqp_queue_name)
+				RunScheduler(rmqCh, pgSQL, amqp_queue_name)
 			}
 		}
 	}()
 	wg.Wait()
 }
 
-// runScheduler - запуск планировщика
-func runScheduler(rmqCh *amqp.Channel, pgSQL *sqlx.DB, queue_name string) {
+// RunScheduler - запуск планировщика
+func RunScheduler(rmqCh *amqp.Channel, pgSQL *sqlx.DB, queue_name string) {
 	eventList := getEventDB(pgSQL)
 	for _, e := range eventList {
 		zapLog.Info(e)
@@ -167,7 +167,7 @@ func init() {
 	if err != nil {
 		log.Fatal("Error init logger", err)
 	}
-	err = viper.BindEnv("PERIOD_CLEAR_MINUTE")
+	err = viper.BindEnv("PERIOD_CLEAR_SECOND")
 	if err != nil {
 		zapLog.Fatal(err)
 	}
@@ -188,5 +188,5 @@ func init() {
 	dbDsn = viper.GetString("db_dns")
 	amqpDsn = viper.GetString("amqp_dsn")
 	amqpQueueName = viper.GetString("queue_name")
-	periodScanDb = viper.GetInt("period_clear_minute")
+	periodScanDb = viper.GetInt("period_clear_second")
 }

@@ -53,34 +53,31 @@ func (pges *PgEventStorage) AddEvent(ctx context.Context, event *event.Event) (s
 	if err != nil {
 		pges.Log.Fatal(err)
 	}
-	defer result.Close()
-
 	var returnUUID string
 	result.Next()
-	result.Scan(&returnUUID)
-	pges.Log.Info(result, returnUUID)
+	err = result.Scan(&returnUUID)
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+	log.Println(result, returnUUID)
 	return returnUUID, nil
 }
 
 // GetEventByID get event
 func (pges *PgEventStorage) GetEventByID(ctx context.Context, id string) (*event.Event, error) {
-	pges.Log.Info("GetEventByID")
+	pges.Log.Info("GetEventByID ", id)
 	ev := event.Event{}
-	row, err := pges.db.Query(`SELECT id, title, date_time, duration, owner, description FROM events WHERE id::uuid in ($1)`, id)
+	var datetime time.Time
+	row := pges.db.QueryRow("SELECT id, title, date_time, duration, owner, description FROM events WHERE id::uuid in ($1);", id)
+
+	err := row.Scan(&ev.Uuid, &ev.Title, &datetime, &ev.Duration, &ev.UserId, &ev.Description)
 	if err != nil {
 		log.Fatal(err)
-		return nil, err
 	}
-	if row.Next() {
-		var datetime time.Time
-		err = row.Scan(&ev.Uuid, &ev.Title, &datetime, &ev.Duration, &ev.UserId, &ev.Description)
-		if err != nil {
-			log.Fatal(err)
-		}
-		ev.Datetime, err = ptypes.TimestampProto(datetime)
-		if err != nil {
-			log.Fatal(err)
-		}
+	ev.Datetime, err = ptypes.TimestampProto(datetime)
+	if err != nil {
+		log.Fatal(err)
 	}
 	pges.Log.Info(ev)
 	return &ev, nil
@@ -116,22 +113,31 @@ func (pges *PgEventStorage) GetEventList(ctx context.Context, types string, user
 	pges.Log.Info("GetEventList")
 	var eventList []*event.Event
 	var t string
+	var datetime time.Time
+	var ev event.Event
 	switch types {
 	case "year":
-		t = "years"
+		t = `SELECT id, title, date_time, duration, owner, description FROM events WHERE (owner = 1 and ((date_time >= now()) and date_time <= now() + make_interval(years := 1)))`
 	case "month":
-		t = "months"
+		t = `SELECT id, title, date_time, duration, owner, description FROM events WHERE (owner = 1 and ((date_time >= now()) and date_time <= now() + make_interval(months := 1)))`
 	default:
-		t = "weeks"
+		t = `SELECT id, title, date_time, duration, owner, description FROM events WHERE (owner = 1 and ((date_time >= now()) and date_time <= now() + make_interval(weeks := 1)))`
 	}
-	err := pges.db.Select(eventList, "SELECT title, date_time, duration, owner, description "+
-		" FROM events "+
-		" WHERE (owner = 1 and "+
-		" ((date_time >= now()) and "+
-		" (date_time <= now() + make_interval($1 := 1))))", t)
+	row, err := pges.db.Query(t)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
+	}
+	for row.Next() {
+		err = row.Scan(&ev.Uuid, &ev.Title, &datetime, &ev.Duration, &ev.UserId, &ev.Description)
+		if err != nil {
+			log.Fatal(err)
+		}
+		ev.Datetime, err = ptypes.TimestampProto(datetime)
+		if err != nil {
+			log.Fatal(err)
+		}
+		eventList = append(eventList, &ev)
 	}
 	return eventList, nil
 }

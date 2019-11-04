@@ -14,7 +14,7 @@ x-worker_env: &worker_env
     - DB_DSN
     - AMQP_DSN
     - QUEUE_NAME
-    - PERIOD_CLEAR_MINUTE
+    - PERIOD_CLEAR_SECOND
 
 services:
   # Эмулирование работы пльзователя

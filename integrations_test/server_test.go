@@ -4,17 +4,22 @@ import (
 	"context"
 	"errors"
 	"github.com/DATA-DOG/godog"
+	"github.com/DATA-DOG/godog/gherkin"
+	//"github.com/egor1344/otus_calendar/calendar/cmd"
 	"github.com/egor1344/otus_calendar/calendar/proto/event"
 	"github.com/egor1344/otus_calendar/calendar/proto/server"
 	"github.com/golang/protobuf/ptypes"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"log"
 	"os"
 )
 
-var dbDsn = os.Getenv("TEST_DB_DSN")
+var dbDsn = os.Getenv("DB_DSN")
+var amqpDSN = os.Getenv("AMQP_DSN")
+var queueName = os.Getenv("QUEUE_NAME")
 var serverPort = os.Getenv("CALENDAR_PORT")
 var serverHost = "server"
 
@@ -34,7 +39,7 @@ type serverTest struct {
 	responseBody       []byte
 }
 
-func (test *serverTest) connectDB(interface{}) {
+func (test *serverTest) connectDB(*gherkin.Feature) {
 	db, err := sqlx.Open("pgx", dbDsn)
 	if err != nil {
 		log.Fatal(err)
@@ -46,20 +51,20 @@ func (test *serverTest) connectDB(interface{}) {
 	test.DB = db
 }
 
-func (test *serverTest) flushDB(interface{}) {
+func (test *serverTest) flushDB(*gherkin.Feature) {
 	_, err := test.DB.Exec("truncate table events;")
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (test *serverTest) addEvents(interface{}) {
+func (test *serverTest) addEvents(*gherkin.Feature) {
 	// week test
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(days := 1), 'd1', 0, 1, 't1', 0, gen_random_uuid(), false);")
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(days := 3), 'd2', 0, 1, 't2', 0, gen_random_uuid(), false);")
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(days := 4), 'd3', 0, 1, 't3', 0, gen_random_uuid(), false);")
 	// month test
-	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(months :=1, days := 1), 'd4', 0, 1, 't4', 0, gen_random_uuid(), false);")
+	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(days := 13), 'd4', 0, 1, 't4', 0, gen_random_uuid(), false);")
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(months :=1, days := 3), 'd5', 0, 2, 't5', 0, gen_random_uuid(), false);")
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(months :=1, days := 4), 'd6', 0, 3, 't6', 0, gen_random_uuid(), false);")
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(days := 14), 'd7', 0, 3, 't7', 0, gen_random_uuid(), false);")
@@ -181,16 +186,95 @@ func (test *serverTest) iGetEventListWithTypeWeekGprcrequestTo(arg1 string) erro
 	return nil
 }
 
-func (test *serverTest) theResponseMustContainEventListOnWeek(arg1 string) error {
+func (test *serverTest) theResponseMustContainEventListOnWeek() error {
 	// Получение событий за неделю
-	log.Println(test.getEventListReq.Event)
+	//log.Println(test.getEventListReq.Event, len(test.getEventListReq.Event))
+	if len(test.getEventListReq.Event) != 3 {
+		return errors.New("Event list not equal")
+	}
+	return nil
+}
+
+func (test *serverTest) iGetEventListWithTypeMonthGprcrequestTo(arg1 string) error {
+	// Получение событий за неделю
+	conn, err := grpc.Dial(arg1, grpc.WithInsecure())
+	if err != nil {
+		log.Fatal("Error connect to server", arg1, err)
+	}
+	defer conn.Close()
+	client := server.NewCalendarEventClient(conn)
+	test.Client = client
+	req := &server.GetEventListRequest{Type: server.GetEventListRequest_month}
+	resp, err := test.Client.GetEventList(context.Background(), req)
+	if err != nil {
+		return err
+	}
+	test.getEventListReq = resp
+	return nil
+}
+
+func (test *serverTest) theResponseMustContainEventListOnMonth() error {
+	// Получение событий за неделю
+	//log.Println(test.getEventListReq.Event, len(test.getEventListReq.Event))
+	if len(test.getEventListReq.Event) != 4 {
+		return errors.New("Event list not equal")
+	}
+	return nil
+}
+
+func (test *serverTest) iGetEventListWithTypeYearGprcrequestTo(arg1 string) error {
+	// Получение событий за неделю
+	conn, err := grpc.Dial(arg1, grpc.WithInsecure())
+	if err != nil {
+		log.Fatal("Error connect to server", arg1, err)
+	}
+	defer conn.Close()
+	client := server.NewCalendarEventClient(conn)
+	test.Client = client
+	req := &server.GetEventListRequest{Type: server.GetEventListRequest_year}
+	resp, err := test.Client.GetEventList(context.Background(), req)
+	if err != nil {
+		return err
+	}
+	test.getEventListReq = resp
+	return nil
+}
+
+func (test *serverTest) theResponseMustContainEventListOnYear() error {
+	// Получение событий за неделю
+	//log.Println(test.getEventListReq.Event, len(test.getEventListReq.Event))
+	if len(test.getEventListReq.Event) != 5 {
+		return errors.New("Event list not equal")
+	}
+	return nil
+}
+
+func (test *serverTest) runScheduler() error {
+	conn, err := amqp.Dial(amqpDSN)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	rmqCh, err := conn.Channel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rmqCh.Close()
+	//cmd.RunScheduler(rmqCh, test.DB, queueName)
+	return nil
+}
+
+func (test *serverTest) existsEventsUpdateSendTrueAndClearOldEvents() error {
 	return nil
 }
 
 func FeatureContext(s *godog.Suite) {
 	test := new(serverTest)
 
-	s.BeforeScenario(test.connectDB)
+	s.BeforeFeature(test.connectDB)
+	s.BeforeFeature(test.flushDB)
+	s.BeforeFeature(test.addEvents)
+	s.AfterFeature(test.flushDB)
 	// add event
 	s.Step(`^I AddEvent gprc-request to "([^"]*)"$`, test.iAddEventGprcrequestTo)
 	s.Step(`^The response should match my Event$`, test.theResponseShouldMatchMyEvent)
@@ -200,17 +284,19 @@ func FeatureContext(s *godog.Suite) {
 	// update event
 	s.Step(`^I UpdateEvent gprc-request to "([^"]*)"$`, test.iUpdateEventGprcrequestTo)
 	s.Step(`^The response must contain my update event$`, test.theResponseMustContainMyUpdateEvent)
+
 	// get list event
-	s.BeforeScenario(test.flushDB)
-	s.BeforeScenario(test.addEvents)
 	// week
 	s.Step(`^I GetEventList with type week gprc-request to "([^"]*)"$`, test.iGetEventListWithTypeWeekGprcrequestTo)
 	s.Step(`^The response must contain event list on week$`, test.theResponseMustContainEventListOnWeek)
 	// month
-	//s.Step(`^I GetEventList with type month gprc-request to "([^"]*)"$`, iGetEventListWithTypeMonthGprcrequestTo)
-	//s.Step(`^The response must contain event list on month$`, theResponseMustContainEventListOnMonth)
+	s.Step(`^I GetEventList with type month gprc-request to "([^"]*)"$`, test.iGetEventListWithTypeMonthGprcrequestTo)
+	s.Step(`^The response must contain event list on month$`, test.theResponseMustContainEventListOnMonth)
 	// year
-	//s.Step(`^I GetEventList with type year gprc-request to "([^"]*)"$`, iGetEventListWithTypeYearGprcrequestTo)
-	//s.Step(`^The response must contain event list on year$`, theResponseMustContainEventListOnYear)
+	s.Step(`^I GetEventList with type year gprc-request to "([^"]*)"$`, test.iGetEventListWithTypeYearGprcrequestTo)
+	s.Step(`^The response must contain event list on year$`, test.theResponseMustContainEventListOnYear)
+
+	s.Step(`^Run scheduler$`, test.runScheduler)
+	s.Step(`^Exists events update send True and Clear old events$`, test.existsEventsUpdateSendTrueAndClearOldEvents)
 
 }

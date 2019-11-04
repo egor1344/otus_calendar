@@ -10,11 +10,11 @@ x-app_environment: &app_environment
     - GO111MODULE
 
 x-worker_env: &worker_env
-    environment:
+  environment:
     - DB_DSN
     - AMQP_DSN
     - QUEUE_NAME
-    - PERIOD_CLEAR_MINUTE
+    - PERIOD_CLEAR_SECOND
 
 services:
   server:
@@ -27,7 +27,7 @@ services:
       - db
     links:
       - db
-    command: wait-for db:5432 -t 60 -- ls
+    command: wait-for db:5432 -t 60 -- go run main.go server
     expose:
       - "8000"
     ports:

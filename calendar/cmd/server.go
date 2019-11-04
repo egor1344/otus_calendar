@@ -52,7 +52,7 @@ var GrpcServerCmd = &cobra.Command{
 
 func init() {
 	//GrpcServerCmd.Flags().StringVar(&host, "host", "0.0.0.0", "Host server")
-	//GrpcServerCmd.Flags().StringVar(&port, "port", "8000", "Port server")
+	GrpcServerCmd.Flags().StringVar(&port, "port", "", "Port server")
 	//GrpcServerCmd.Flags().StringVar(&dsn, "dsn", "host=db port=5432 user=postgres dbname=postgres sslmode=disable", "databse connection string")
 	l, err := logger.GetLogger()
 	zapLog = l
@@ -74,6 +74,8 @@ func init() {
 	viper.AutomaticEnv()
 	zapLog.Info(viper.AllSettings())
 	host = viper.GetString("calendar_host")
-	port = viper.GetString("calendar_port")
+	if port == "" {
+		port = viper.GetString("calendar_port")
+	}
 	dsn = viper.GetString("db_dsn")
 }

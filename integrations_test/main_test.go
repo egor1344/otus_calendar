@@ -15,9 +15,9 @@ func TestMain(m *testing.M) {
 	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
 		FeatureContext(s)
 	}, godog.Options{
-		Format:    "pretty", // Замените на "pretty" для лучшего вывода
+		Format:    "pretty",
 		Paths:     []string{"features"},
-		Randomize: 0, // Последовательный порядок исполнения
+		Randomize: 0,
 	})
 
 	if st := m.Run(); st > status {
