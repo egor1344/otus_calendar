@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
+	//"github.com/egor1344/otus_calendar/calendar/proto/event"
+
 	//"github.com/egor1344/otus_calendar/calendar/internal/domain/models"
+	"github.com/egor1344/otus_calendar/calendar/internal/domain/models"
 	"github.com/egor1344/otus_calendar/calendar/pkg/logger"
-	"github.com/egor1344/otus_calendar/calendar/proto/event"
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/spf13/cobra"
@@ -18,7 +20,7 @@ import (
 )
 
 // construc - создание подключения к необходимым приложениям
-func construc(db_dsn, amqp_dsn, amqp_queue_name string, periodScanDb int) {
+func construc(db_dsn, amqp_dsn, amqp_queue_name string) {
 	// PostgreSQL
 	zapLog.Info(db_dsn)
 	pgSQL, err := sqlx.Connect("pgx", db_dsn)
@@ -74,7 +76,7 @@ func deleteOldEvent(pgSQL *sqlx.DB) {
 }
 
 // markEventSend - пометка события завершенным
-func markEventSend(eventList []event.Event, pgSQL *sqlx.DB) {
+func markEventSend(eventList []models.Event, pgSQL *sqlx.DB) {
 	countEvent := len(eventList)
 	if countEvent > 0 {
 		var IDList strings.Builder
@@ -82,7 +84,7 @@ func markEventSend(eventList []event.Event, pgSQL *sqlx.DB) {
 
 		for i, e := range eventList {
 			IDList.WriteString("'")
-			IDList.WriteString(e.Uuid)
+			IDList.WriteString(e.UUID)
 			if i+1 != countEvent {
 				IDList.WriteString("',")
 			} else {
@@ -100,7 +102,7 @@ func markEventSend(eventList []event.Event, pgSQL *sqlx.DB) {
 }
 
 // pullInQueue Отправка сообщений в очередь
-func pullInQueue(event *event.Event, rmqCh *amqp.Channel, queue_name string) {
+func pullInQueue(event *models.Event, rmqCh *amqp.Channel, queue_name string) {
 	eventJSON, err := json.Marshal(event)
 	if err != nil {
 		zapLog.Fatal(err)
@@ -132,7 +134,7 @@ func pullInQueue(event *event.Event, rmqCh *amqp.Channel, queue_name string) {
 }
 
 // getEventDB - получение событий из БД
-func getEventDB(pgSQL *sqlx.DB) (eventList []event.Event) {
+func getEventDB(pgSQL *sqlx.DB) (eventList []models.Event) {
 	err := pgSQL.Select(&eventList, "SELECT id, title, date_time, duration, description, owner, before_time_pull"+
 		" FROM events WHERE  (send=false and (now() >= date_time))")
 	if err != nil {
@@ -153,7 +155,7 @@ var SchedulerCmd = &cobra.Command{
 	Use:   "scheduler",
 	Short: "run scheduler",
 	Run: func(cmd *cobra.Command, args []string) {
-		construc(dbDsn, amqpDsn, amqpQueueName, periodScanDb)
+		construc(dbDsn, amqpDsn, amqpQueueName)
 	},
 }
 
@@ -185,8 +187,9 @@ func init() {
 	}
 	viper.AutomaticEnv()
 	zapLog.Info(viper.AllSettings())
-	dbDsn = viper.GetString("db_dns")
+	dbDsn = viper.GetString("db_dsn")
 	amqpDsn = viper.GetString("amqp_dsn")
 	amqpQueueName = viper.GetString("queue_name")
 	periodScanDb = viper.GetInt("period_clear_second")
+	zapLog.Info(periodScanDb)
 }

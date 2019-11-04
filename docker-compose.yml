@@ -14,7 +14,7 @@ x-worker_env: &worker_env
     - DB_DSN
     - AMQP_DSN
     - QUEUE_NAME
-    - PERIOD_CLEAR_SECOND
+    - PERIOD_CLEAR_SECOND=3
 
 services:
   server:
@@ -43,7 +43,7 @@ services:
       - rabbitmq
     volumes:
       - ./calendar:/app:cached
-    command: wait-for rabbitmq:5672 -t 60 -- ./calendar scheduler
+    command: wait-for rabbitmq:5672 -t 60 -- go run main.go scheduler
     links:
       - db
       - rabbitmq
@@ -58,7 +58,7 @@ services:
       - rabbitmq
     volumes:
       - ./calendar:/app:cached
-    command: wait-for rabbitmq:5672 -t 60 -- ./calendar mailing
+    command: wait-for rabbitmq:5672 -t 60 -- go run main.go mailing
     links:
       - db
       - rabbitmq

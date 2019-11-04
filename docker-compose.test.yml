@@ -14,7 +14,7 @@ x-worker_env: &worker_env
     - DB_DSN
     - AMQP_DSN
     - QUEUE_NAME
-    - PERIOD_CLEAR_SECOND=300000
+    - PERIOD_CLEAR_SECOND=3
 
 services:
   integrations_test:

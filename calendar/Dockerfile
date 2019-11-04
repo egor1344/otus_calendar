@@ -7,4 +7,4 @@ COPY wait-for /usr/bin/wait-for
 RUN chmod +x /usr/bin/wait-for
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod vendor .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build .

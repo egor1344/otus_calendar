@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/DATA-DOG/godog"
 	"github.com/DATA-DOG/godog/gherkin"
-	//"github.com/egor1344/otus_calendar/calendar/cmd"
 	"github.com/egor1344/otus_calendar/calendar/proto/event"
 	"github.com/egor1344/otus_calendar/calendar/proto/server"
 	"github.com/golang/protobuf/ptypes"
@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"log"
 	"os"
+	"time"
 )
 
 var dbDsn = os.Getenv("DB_DSN")
@@ -73,6 +74,13 @@ func (test *serverTest) addEvents(*gherkin.Feature) {
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(months :=2, days := 1), 'd8', 0, 1, 't8', 0, gen_random_uuid(), false);")
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(months :=3, days := 3), 'd9', 0, 2, 't9', 0, gen_random_uuid(), false);")
 	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() + make_interval(months :=4, days := 4), 'd10', 0, 3, 't10', 0, gen_random_uuid(), false);")
+
+	//scheduler test
+	// mailing
+	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() - make_interval(months :=4, days := 4), 'd11', 0, 3, 't10', 0, gen_random_uuid(), false);")
+	// old event
+	test.DB.Exec("INSERT INTO public.events (date_time, description, duration, owner, title, before_time_pull, id, send) VALUES (now() - make_interval(year :=2, days := 4), 'd12', 0, 3, 't10', 0, gen_random_uuid(), false);")
+
 }
 
 func (test *serverTest) iAddEventGprcrequestTo(arg1 string) (err error) {
@@ -260,11 +268,29 @@ func (test *serverTest) runScheduler() error {
 		log.Fatal(err)
 	}
 	defer rmqCh.Close()
+	fmt.Println("Wait 5s for scheduler work")
+	time.Sleep(5 * time.Second)
 	//cmd.RunScheduler(rmqCh, test.DB, queueName)
 	return nil
 }
 
 func (test *serverTest) existsEventsUpdateSendTrueAndClearOldEvents() error {
+	var count int
+	err := test.DB.Get(&count, "SELECT COUNT(*) FROM events WHERE send=true")
+	log.Println(count)
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return errors.New("Count mailing not equal 1")
+	}
+	err = test.DB.Get(&count, "SELECT COUNT(*) FROM events WHERE  (now()- make_interval(years := 1)) >= date_time")
+	if err != nil {
+		return err
+	}
+	if count != 0 {
+		return errors.New("Count old event not equal 0")
+	}
 	return nil
 }
 
@@ -296,6 +322,7 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`^I GetEventList with type year gprc-request to "([^"]*)"$`, test.iGetEventListWithTypeYearGprcrequestTo)
 	s.Step(`^The response must contain event list on year$`, test.theResponseMustContainEventListOnYear)
 
+	// scheduler
 	s.Step(`^Run scheduler$`, test.runScheduler)
 	s.Step(`^Exists events update send True and Clear old events$`, test.existsEventsUpdateSendTrueAndClearOldEvents)
 
